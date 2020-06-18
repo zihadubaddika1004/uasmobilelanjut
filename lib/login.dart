@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:projectmobilelanjut/register.dart';
+import 'package:projectmobilelanjut/Beranda.dart';
+import 'package:projectmobilelanjut/Rekam_Medis.dart';
+import 'package:projectmobilelanjut/Akun.dart';
 
 void main(){
   runApp(MaterialApp(
@@ -39,18 +43,18 @@ class _LoginState extends State<Login> {
   login() async {
     final response = await http
         .post(
-        "http://apikelvin2019.000webhostapp.com/login.php",
+        "https://redigo-api.000webhostapp.com/login.php",
         body: {"username": username, "password": password});
     final data = jsonDecode(response.body);
     int value = data['value'];
     String message = data['message'];
     String user = data['username'];
-    String nama = data['nama'];
+    String pass = data['password'];
     String id = data['id'];
     if (value == 1) {
       setState(() {
         _loginStatus = LoginStatus.signIn;
-        savePref(value, user, nama, id);
+        savePref(value, user, pass, id);
       });
       print(message);
     } else {
@@ -62,7 +66,7 @@ class _LoginState extends State<Login> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       preferences.setInt("value", value);
-      preferences.setString("nama", nama);
+      preferences.setString("password", password);
       preferences.setString("username", username);
       preferences.setString("id", id);
       preferences.commit();
@@ -115,6 +119,7 @@ class _LoginState extends State<Login> {
                   height: 100.0,
                 ),
                 TextFormField(
+                  initialValue: "lofanny",
                   validator: (e) {
                     if (e.isEmpty) {
                       return "Isi username terlebih dahulu";
@@ -130,6 +135,7 @@ class _LoginState extends State<Login> {
                   cursorColor: Color(0xffFF4747),
                 ),
                 TextFormField(
+                  initialValue: "lampung123",
                     validator: (e) {
                       if (e.isEmpty) {
                         return "Isi password terlebih dahulu";
@@ -150,7 +156,7 @@ class _LoginState extends State<Login> {
                                 ),
                         )),
                     cursorColor: Color(0xffFF4747)
-        ),
+                ),
                 new Padding(padding: EdgeInsets.only(top: 8.0)),
                 SizedBox(
                     width: 10, // specific value
@@ -175,10 +181,13 @@ class _LoginState extends State<Login> {
                         style: new TextStyle(fontSize: 20.0)),
                     new Padding(padding: EdgeInsets.only(right: 8.0)),
                     InkWell(
-                      onTap: (){
-                        Navigator.pushNamed(context, "Daftar");
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => Daftar()
+                        )
+                        );
                       },
-                      child: new Text("DAFTAR" , style: new TextStyle(fontSize: 20.0 , color: Color(0xffFF4747))),
+                      child: new Text("DAFTAR" , style: new TextStyle(fontSize: 18.0 , color: Color(0xffFF4747))),
                       ),
                   ],
                 ),
@@ -202,6 +211,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+
   signOut(){
     setState(() {
       widget.signOut();
@@ -216,36 +226,64 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
     getPref();
   }
+  int _currentindex = 1;
+  List<Widget> _container = [
+    RekamMedisPage(),
+    BerandaPage(),
+    AkunPage(),
+  ];
   @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(
-          backgroundColor: Color(0xffFF4747),
-          title: Text("Dashboard"), leading: Icon(Icons.home)),
-      body: new Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Text("Halo Selamat Datang di Dashboard",
-                style: new TextStyle(fontSize: 20.0)),
-            ButtonTheme(
-                minWidth: MediaQuery.of(context).size.width,
-                child: new Container(
-                  margin: const EdgeInsets.only(top: 8.0, left: 8.0, bottom: 8.0, right: 8.0),
-                  child: new RaisedButton(
-                      onPressed: (){
-                        signOut();
-                      },
-                      color: Color(0xffFF4747),
-                      textColor: Colors.white,
-                      child: Text("Logout")),
-                )),
-          ],
+  Widget build(BuildContext context) {
+    return new Scaffold(
+        body: _container[_currentindex],
+        bottomNavigationBar: _buildBottomNavigation()
+    );
+  }
+
+  Widget _buildBottomNavigation(){
+    return new BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      onTap: (index) {
+        setState(() {
+          _currentindex = index;
+        });
+      },
+      currentIndex: _currentindex,
+      items: [
+        BottomNavigationBarItem(
+          activeIcon: Icon(
+            Icons.list,
+            color: Color(0xffFF4747),
+            size: 30.0,
+          ),
+          icon: Icon(
+            Icons.list,
+            color: Colors.grey,
+            size: 30.0,
+          ),
+          title: new Text('Rekam Medis')
         ),
-      ),
+        BottomNavigationBarItem(
+          activeIcon: new ImageIcon(
+            AssetImage("images/home.png"),
+            color: Color(0xffFF4747)
+          ),
+          icon: new ImageIcon(
+            AssetImage("images/home.png")
+          ),
+          title: new Text('Beranda'),
+        ),
+        BottomNavigationBarItem(
+          activeIcon: new ImageIcon(
+            AssetImage("images/icon.png"),
+            color: Color(0xffFF4747)
+          ),
+          icon: new ImageIcon(
+            AssetImage("images/icon.png")
+          ),
+          title: new Text('Akun'),
+        ),
+      ],
     );
   }
 }
